@@ -23,7 +23,7 @@ There are also some modifications for the table. By default, if a reference is n
 table.setIfNullFound(Table.PRINT_NULL)
 ```
 
-We can also change the alignment of the table with `setAlign()` method.
+We can also change the alignment of the table with `setAlign()` or change the style with `setStyle()`.
 
 ## 2. ListTable
 

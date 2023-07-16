@@ -35,7 +35,7 @@ public class Table {
     public static final int STYLE_ADVANCED = 2;
     public static final int STYLE_MORE_BORDER = 3;
 
-    private int style = STYLE_SIMPLE;
+    private int style = STYLE_MORE_BORDER;
 
     public void setStyle(int style) {
         this.style = style;
