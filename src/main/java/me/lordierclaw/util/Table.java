@@ -18,6 +18,10 @@ public class Table {
     public static final int PRINT_EMPTY = 2;
     protected int ifNullFound = PRINT_EMPTY;
 
+    public void setIfNullFound(int value) {
+        ifNullFound = value;
+    }
+
     public static final int ALIGN_LEFT = 1;
     public static final int ALIGN_RIGHT = 2;
     private int align = ALIGN_LEFT;
@@ -26,19 +30,25 @@ public class Table {
         this.align = align;
     }
 
-    public void setIfNullFound(int value) {
-        ifNullFound = value;
+    public static final int STYLE_NONE = 0;
+    public static final int STYLE_SIMPLE = 1;
+    public static final int STYLE_ADVANCED = 2;
+    public static final int STYLE_MORE_BORDER = 3;
+
+    private int style = STYLE_SIMPLE;
+
+    public void setStyle(int style) {
+        this.style = style;
     }
 
-    private String padString(String string, int length) {
-        if (align == ALIGN_RIGHT) return String.format("%" + length + "s", string);
-        else return String.format("%-" + length + "s", string);
-    }
+    private int padSum = 0;
 
     public Table(ArrayList<String> header) {
         this.header = header;
         for (String col: header) {
-            pads.add(col.length() + COLUMN_OFFSET);
+            int value = col.length() + COLUMN_OFFSET;
+            pads.add(value);
+            padSum += value;
         }
     }
 
@@ -46,12 +56,29 @@ public class Table {
         this(new ArrayList<>(header));
     }
 
+    private String padString(String string, int length) {
+        if (align == ALIGN_RIGHT) {
+            if (style == STYLE_ADVANCED || style == STYLE_MORE_BORDER)
+                return String.format("%" + length + "s ", string);
+            else
+                return String.format("%" + length + "s", string);
+        } else {
+            if (style == STYLE_ADVANCED || style == STYLE_MORE_BORDER)
+                return String.format(" %-" + length + "s", string);
+            else
+                return String.format("%-" + length + "s", string);
+        }
+    }
+
     private void correctPadding(ArrayList<?> row) {
+        int localSum = 0;
         for (int i = 0; i < row.size(); i++) {
             int max = row.get(i).toString().length() + COLUMN_OFFSET;
             if (pads.get(i) > max) max = pads.get(i);
             pads.set(i, max);
+            localSum += max;
         }
+        if (localSum > padSum) padSum = localSum;
     }
     public void addRow(ArrayList<?> row) {
         if (row.size() != header.size()) {
@@ -65,28 +92,59 @@ public class Table {
         addRow(new ArrayList<>(row));
     }
 
+    private String getHeaderTableFormat() {
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < header.size(); i++) {
+            str.append(padString(header.get(i), pads.get(i)));
+            if (style == STYLE_ADVANCED || style == STYLE_MORE_BORDER) {
+                if (i != header.size() - 1) str.append('|');
+            }
+        }
+        if (style == STYLE_MORE_BORDER) {
+            StringBuilder head = new StringBuilder();
+            String line = padString("", padSum + header.size()*2).replace(" ", "-");
+            head.append(line);
+            head.append("\n|").append(str).append("|\n");
+            head.append(line);
+            return head.toString() + '\n';
+        } else if (style == STYLE_ADVANCED) {
+            String line = padString("", padSum + header.size()*2).replace(" ", "-");
+            str.append('\n').append(line);
+        } else if (style == STYLE_SIMPLE) {
+            String line = padString("", padSum).replace(" ", "-");
+            str.append('\n').append(line);
+        }
+        return str.toString() + '\n';
+    }
+
+    private String getRowTableFormat(ArrayList<?> row) {
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i < row.size(); i++) {
+            str.append(padString(row.get(i).toString(), pads.get(i)));
+            if (style == STYLE_ADVANCED || style == STYLE_MORE_BORDER) {
+                if (i != row.size()-1) str.append('|');
+            }
+        }
+        if (style == STYLE_MORE_BORDER) {
+            return "|" + str + "|\n";
+        }
+        str.append('\n');
+        return str.toString();
+    }
+
     @Override
     public String toString() {
-        StringBuilder str = new StringBuilder();
         if (rows.isEmpty()) return "Table is empty.";
-        int maxLength = 0;
-        for (int i = 0; i < header.size(); i++) {
-            maxLength += pads.get(i);
-            str.append(padString(header.get(i), pads.get(i)));
+        StringBuilder str = new StringBuilder();
+        str.append(getHeaderTableFormat());
+        for (ArrayList<?> row: rows) {
+            str.append(getRowTableFormat(row));
         }
-        str.append('\n');
-        str.append(padString("", maxLength).replace(" ", "-"));
-        str.append('\n');
-        for (var row: rows) {
-            for (int i = 0; i < row.size(); i++) {
-                String content = "";
-                if (row.get(i) != null) content = row.get(i).toString();
-                else if (ifNullFound == PRINT_NULL) content = "null";
-                str.append(padString(content, pads.get(i)));
-            }
-            str.append('\n');
+        if (style == STYLE_MORE_BORDER) {
+            String line = padString("", padSum + header.size()*2).replace(" ", "-");
+            str.append(line);
         }
-        return str.toString();
+        return str.toString().stripTrailing(); // Remove the last \n character
     }
 
     public static class TableImportException extends RuntimeException {
