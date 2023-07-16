@@ -1,9 +1,9 @@
 plugins {
-    id("java")
+    id("java-library")
 }
 
 group = "me.lordierclaw"
-version = "1.0-SNAPSHOT"
+version = "0.1-ALPHA"
 
 repositories {
     mavenCentral()
