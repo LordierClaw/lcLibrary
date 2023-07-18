@@ -25,6 +25,18 @@ table.setIfNullFound(Table.PRINT_NULL)
 
 We can also change the alignment of the table with `setAlign()` or change the style with `setStyle()`.
 
+### Table supports non-monospaced font! (But not all)
+
+Non-monospaced font has different horizontal space for each character which means `Table` will display differently in non-monospaced.
+In order to **fix** that, you need a `FontMetrics` to calculate the horizontal space.
+
+In `Table`, you have to use `setFontMetrics()` or `setFont()` before printing it out. The `Font` you use must have a **large** size for least error. (I recommend it should be at least `24`)
+
+```java
+Font font = new Font("Minecraftia", Font.PLAIN, 24);
+table.setFont(font);
+```
+
 ## 2. ListTable
 
 `ListTable` was created to be an `ArrayList` with `Table`. However, the definition of `ListTable` can be quite difficult to use.
